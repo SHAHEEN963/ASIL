@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بوابة الطالب</title>
+  <meta name="description" content="بوابة الطالب لمتابعة الحضور والغياب ومواعيد الجلسات القادمة.">
+  <meta name="theme-color" content="#1f2d3a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='9' fill='%232f7188'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400..700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ================================================
+       الألوان — عدّلها من هنا فقط
+       ================================================ */
+    :root {
+      --ink: #1f2d3a;
+      --ink-soft: #5b6b79;
+      --brand: #2f7188;
+      --brand-deep: #23586b;
+      --brand-tint: #e8f2f5;
+      --paper: #f3f5f7;
+      --surface: #ffffff;
+      --line: #e3e8ec;
+
+      --present: #1f8a5b;
+      --present-tint: #e3f4ea;
+      --absent: #c0392b;
+      --absent-tint: #fbe7e5;
+      --excused: #b7791f;
+      --excused-tint: #fbf1dc;
+      --neutral: #6b7784;
+      --neutral-tint: #eef1f4;
+
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "El Messiri", "Segoe UI", Tahoma, sans-serif;
+    }
+
+    html, body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input {
+      font: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    :focus-visible {
+      outline: 3px solid rgba(47, 113, 136, 0.35);
+      outline-offset: 2px;
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    /* ================= Top bar ================= */
+    .topbar {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .topbar-inner {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 19px;
+      background: none;
+      border: 0;
+      color: #fff;
+      padding: 0;
+    }
+
+    .brand svg {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+    }
+
+    .nav {
+      display: flex;
+      gap: 6px;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: rgba(255, 255, 255, 0.78);
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .nav-btn:hover {
+      color: #fff;
+    }
+
+    .nav-btn.active {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .nav-btn.logout {
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* ================= Layout ================= */
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .muted {
+      color: var(--ink-soft);
+    }
+
+    /* ================= Login ================= */
+    .login-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .login-card {
+      padding: 32px 30px;
+    }
+
+    .login-card h1 {
+      font-size: 28px;
+    }
+
+    .login-card p {
+      margin: 6px 0 24px;
+      line-height: 1.8;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 7px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1.5px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: #fafbfc;
+      font-size: 17px;
+      direction: ltr;
+      text-align: right;
+    }
+
+    .field input:focus {
+      outline: none;
+      border-color: var(--brand);
+      background: #fff;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--brand);
+      color: #fff;
+      border: 0;
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      font-size: 17px;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--brand-deep);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .form-error {
+      margin-top: 14px;
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--absent-tint);
+      color: var(--absent);
+      font-weight: 600;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .preview {
+      padding: 26px 26px 18px;
+    }
+
+    .preview-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 12px;
+    }
+
+    .preview-head h2 {
+      font-size: 18px;
+    }
+
+    .link-btn {
+      background: none;
+      border: 0;
+      color: var(--brand);
+      font-weight: 700;
+      font-size: 14px;
+      padding: 4px 0;
+    }
+
+    .link-btn:hover {
+      color: var(--brand-deep);
+      text-decoration: underline;
+    }
+
+    /* ================= Dashboard ================= */
+    .dash-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .dash-head h1 {
+      font-size: 27px;
+    }
+
+    .dash-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 12px;
+      border-radius: 999px;
+      background: var(--brand-tint);
+      color: var(--brand-deep);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .btn-ghost {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--brand-deep);
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+      border-color: var(--brand);
+    }
+
+    .btn-ghost:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 18px;
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab {
+      flex-shrink: 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink-soft);
+    }
+
+    .tab.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+
+    .tab.unavailable:not(.active) {
+      opacity: 0.55;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 28px;
+      padding: 28px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .ring-wrap {
+      position: relative;
+      width: 190px;
+      height: 190px;
+      margin: 0 auto;
+    }
+
+    .ring-wrap svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .ring-track {
+      fill: none;
+      stroke: var(--neutral-tint);
+      stroke-width: 12;
+    }
+
+    .ring-value {
+      fill: none;
+      stroke: var(--present);
+      stroke-width: 12;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.7s ease, stroke 0.3s ease;
+    }
+
+    .ring-value.mid { stroke: var(--excused); }
+    .ring-value.low { stroke: var(--absent); }
+
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .ring-pct {
+      font-size: 44px;
+      font-weight: 700;
+      line-height: 1.1;
+      direction: ltr;
+    }
+
+    .ring-label {
+      font-size: 14px;
+      color: var(--ink-soft);
+      font-weight: 600;
+    }
+
+    .metrics {
+      display: grid;
+      gap: 18px;
+    }
+
+    .metric-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 7px;
+    }
+
+    .metric-label {
+      font-weight: 700;
+      font-size: 17px;
+    }
+
+    .metric-count {
+      color: var(--ink-soft);
+      font-size: 14px;
+      margin-inline-start: 8px;
+      font-weight: 600;
+    }
+
+    .metric-pct {
+      font-weight: 700;
+      font-size: 20px;
+      direction: ltr;
+    }
+
+    .metric-bar {
+      height: 8px;
+      background: var(--neutral-tint);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .metric-bar span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.7s ease;
+    }
+
+    .m-present .metric-pct { color: var(--present); }
+    .m-present .metric-bar span { background: var(--present); }
+    .m-absent .metric-pct { color: var(--absent); }
+    .m-absent .metric-bar span { background: var(--absent); }
+    .m-excused .metric-pct { color: var(--excused); }
+    .m-excused .metric-bar span { background: var(--excused); }
+
+    .empty-state {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--ink-soft);
+      font-weight: 600;
+      line-height: 1.8;
+    }
+
+    /* ================= Lectures table ================= */
+    .lectures-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 20px 22px 14px;
+    }
+
+    .lectures-head h2 {
+      font-size: 19px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .filter {
+      background: var(--paper);
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 5px 13px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-soft);
+    }
+
+    .filter.active {
+      background: var(--brand-tint);
+      border-color: var(--brand);
+      color: var(--brand-deep);
+    }
+
+    .search {
+      margin: 0 22px 12px;
+    }
+
+    .search input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: #fafbfc;
+      font-size: 15px;
+    }
+
+    .search input:focus {
+      outline: none;
+      border-color: var(--brand);
+      background: #fff;
+    }
+
+    .lec-table {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .lec-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 190px 110px;
+      gap: 12px;
+      align-items: center;
+      padding: 13px 22px;
+      border-top: 1px solid var(--line);
+    }
+
+    .lec-row.head {
+      background: var(--paper);
+      color: var(--ink-soft);
+      font-size: 13px;
+      font-weight: 700;
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+
+    .lec-title {
+      font-weight: 700;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .lec-date {
+      color: var(--ink-soft);
+      font-size: 14px;
+      direction: ltr;
+      text-align: right;
+    }
+
+    .chip {
+      justify-self: start;
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .chip-present { background: var(--present-tint); color: var(--present); }
+    .chip-absent  { background: var(--absent-tint);  color: var(--absent); }
+    .chip-excused { background: var(--excused-tint); color: var(--excused); }
+    .chip-empty,
+    .chip-other   { background: var(--neutral-tint); color: var(--neutral); }
+
+    /* ================= Upcoming ================= */
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .page-head h1 {
+      font-size: 27px;
+    }
+
+    .page-head p {
+      margin: 4px 0 0;
+    }
+
+    .day-group {
+      margin-bottom: 18px;
+    }
+
+    .day-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 16px;
+      margin: 0 4px 8px;
+    }
+
+    .day-tag {
+      background: var(--brand);
+      color: #fff;
+      font-size: 12px;
+      padding: 2px 10px;
+      border-radius: 999px;
+    }
+
+    .session {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 15px 20px;
+      border-top: 1px solid var(--line);
+    }
+
+    .session:first-child {
+      border-top: 0;
+    }
+
+    .session-time {
+      font-weight: 700;
+      color: var(--brand-deep);
+      font-size: 15px;
+    }
+
+    .session-title {
+      font-weight: 700;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .session-cat {
+      font-size: 13px;
+      color: var(--ink-soft);
+      font-weight: 600;
+    }
+
+    .live {
+      background: var(--present-tint);
+      color: var(--present);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .preview .session {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2px;
+      padding: 12px 0;
+    }
+
+    /* ================= Loading ================= */
+    .loading {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--ink-soft);
+      font-weight: 600;
+    }
+
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid var(--line);
+      border-top-color: var(--brand);
+      border-radius: 50%;
+      margin: 0 auto 14px;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .foot-note {
+      text-align: center;
+      font-size: 13px;
+      margin-top: 18px;
+    }
+
+    /* ================= Responsive ================= */
+    @media (max-width: 760px) {
+      main {
+        padding: 20px 14px 50px;
+      }
+
+      .login-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .login-card {
+        padding: 26px 20px;
+      }
+
+      .summary {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 22px 18px;
+        gap: 22px;
+      }
+
+      .ring-wrap {
+        width: 160px;
+        height: 160px;
+      }
+
+      .ring-pct {
+        font-size: 38px;
+      }
+
+      .lec-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding: 12px 16px;
+      }
+
+      .lec-row.head {
+        display: none;
+      }
+
+      .lec-date {
+        grid-column: 1;
+        grid-row: 2;
+        font-size: 13px;
+      }
+
+      .lec-row .chip {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+      }
+
+      .lectures-head,
+      .search {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .search {
+        margin: 0 0 12px;
+      }
+
+      .session {
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding: 13px 16px;
+      }
+
+      .session-time {
+        grid-column: 1 / -1;
+        font-size: 14px;
+      }
+
+      .brand span {
+        font-size: 17px;
+        white-space: nowrap;
+      }
+
+      .topbar-inner {
+        padding: 12px 14px;
+      }
+
+      .nav-btn {
+        padding: 6px 10px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .brand span {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button type="button" class="brand" onclick="goHome()">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="1" y="1" width="30" height="30" rx="9" fill="#2f7188"/>
+          <path d="M9 16.5l4.5 4.5L23 11.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>بوابة الطالب</span>
+      </button>
+
+      <nav class="nav">
+        <button type="button" class="nav-btn" id="navUpcoming" onclick="showView('upcoming')">الجلسات القادمة</button>
+        <button type="button" class="nav-btn" id="navAccount" onclick="goHome()">تسجيل الدخول</button>
+        <button type="button" class="nav-btn logout" id="navLogout" onclick="doLogout()" hidden>خروج</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================= Login ================= -->
+    <section id="viewLogin" hidden>
+      <div class="login-grid">
+        <div class="panel login-card">
+          <h1>أهلاً بك</h1>
+          <p class="muted">سجّل الدخول لمتابعة حضورك وغيابك في جميع البرامج.</p>
+
+          <form id="loginForm" autocomplete="on" novalidate>
+            <div class="field">
+              <label for="username">اسم المستخدم</label>
+              <input id="username" name="username" type="text" autocomplete="username" inputmode="text" required>
+            </div>
+
+            <div class="field">
+              <label for="password">كلمة المرور</label>
+              <input id="password" name="password" type="password" autocomplete="current-password" inputmode="numeric" required>
+            </div>
+
+            <button type="submit" class="btn-primary" id="loginBtn">دخول</button>
+            <div class="form-error" id="loginError" hidden></div>
+          </form>
+        </div>
+
+        <div class="panel preview">
+          <div class="preview-head">
+            <h2>أقرب الجلسات</h2>
+            <button type="button" class="link-btn" onclick="showView('upcoming')">عرض الكل</button>
+          </div>
+          <div id="loginPreview"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= Dashboard ================= -->
+    <section id="viewDashboard" hidden>
+      <div id="dashLoading" class="loading">
+        <div class="spinner"></div>
+        جاري تحميل بياناتك...
+      </div>
+
+      <div id="dashContent" hidden>
+        <div class="dash-head">
+          <div>
+            <h1 id="studentName"></h1>
+            <div class="dash-meta">
+              <span class="badge" id="studentUni" hidden></span>
+              <span class="muted">تتحدث البيانات كل بضع دقائق</span>
+            </div>
+          </div>
+          <button type="button" class="btn-ghost" id="refreshBtn" onclick="refreshData()">تحديث</button>
+        </div>
+
+        <div class="tabs" id="catTabs" role="tablist"></div>
+
+        <div class="panel" id="summaryPanel"></div>
+
+        <div class="panel" id="lecturesPanel" hidden>
+          <div class="lectures-head">
+            <h2>سجل المحاضرات</h2>
+            <div class="filters" id="lecFilters"></div>
+          </div>
+
+          <div class="search">
+            <input type="search" id="lecSearch" placeholder="ابحث باسم المحاضرة">
+          </div>
+
+          <ul class="lec-table" id="lecTable"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= Upcoming ================= -->
+    <section id="viewUpcoming" hidden>
+      <div class="page-head">
+        <div>
+          <h1>الجلسات القادمة</h1>
+          <p class="muted">مواعيد الجلسات القادمة لجميع البرامج.</p>
+        </div>
+        <button type="button" class="btn-ghost" id="upRefreshBtn" onclick="refreshUpcoming()">تحديث</button>
+      </div>
+
+      <div class="filters" id="upFilters" style="margin-bottom:16px"></div>
+      <div id="upList"></div>
+    </section>
+  </main>
+
+  <script src="/config.js"></script>
+  <script>
+    var CONFIG = window.PORTAL_CONFIG || {};
+    var API_URL = CONFIG.API_URL || "";
+    var REQUEST_TIMEOUT_MS = 25000;
+    var TOKEN_KEY = "student_portal_token_v1";
+    var UPCOMING_CACHE_KEY = "student_portal_upcoming_v1";
+
+    var S = {
+      view: "",
+      token: "",
+      data: null,
+      cat: "",
+      filter: "all",
+      query: "",
+      up: { items: [] },
+      upCat: "all",
+      offset: 0
+    };
+
+    var STATUS_LABEL = {
+      present: "حضور",
+      absent: "غياب",
+      excused: "مبرر",
+      empty: "غير مسجلة",
+      other: ""
+    };
+
+    var RING_C = 2 * Math.PI * 52;
+
+    /* ================= Init ================= */
+    window.addEventListener("load", function() {
+      document.getElementById("loginForm").addEventListener("submit", onLoginSubmit);
+      document.getElementById("lecSearch").addEventListener("input", function(e) {
+        S.query = e.target.value.trim();
+        renderLectures();
+      });
+
+      if (!API_URL || API_URL.indexOf("script.google.com") === -1) {
+        document.querySelector("main").innerHTML =
+          '<div class="panel empty-state">لم يتم ضبط رابط الخادم. ضع رابط Apps Script في ملف config.js</div>';
+        return;
+      }
+
+      // عرض الجلسات المحفوظة فوراً ثم تحديثها من الخادم
+      var cachedUp = readJson(UPCOMING_CACHE_KEY);
+      if (cachedUp && cachedUp.items) {
+        applyUpcoming(cachedUp, false);
+      }
+
+      loadUpcoming();
+
+      S.token = readToken();
+
+      if (S.token) {
+        showView(isUpcomingUrl() ? "upcoming" : "dashboard");
+        loadMyData();
+      } else {
+        showView(isUpcomingUrl() ? "upcoming" : "login");
+      }
+    });
+
+    function isUpcomingUrl() {
+      var path = window.location.pathname.replace(/\/+$/, "");
+      return path === "/upcoming" || /[?&]view=upcoming/.test(window.location.search);
+    }
+
+    function nowMs() {
+      return Date.now() + S.offset;
+    }
+
+    /* ================= API ================= */
+    // text/plain يمنع طلب CORS التمهيدي؛ Apps Script يقرأ الجسم كـ JSON
+    function api(payload) {
+      var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function() { ctrl.abort(); }, REQUEST_TIMEOUT_MS) : null;
+
+      return fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload),
+        redirect: "follow",
+        signal: ctrl ? ctrl.signal : undefined
+      }).then(function(res) {
+        if (timer) clearTimeout(timer);
+        if (!res.ok) {
+          throw new Error("HTTP " + res.status);
+        }
+        return res.json();
+      }, function(err) {
+        if (timer) clearTimeout(timer);
+        throw err;
+      });
+    }
+
+    var ACTIONS = {
+      login: function(a) { return { action: "login", username: a[0], password: a[1] }; },
+      getMyData: function(a) { return { action: "me", token: a[0] }; },
+      logout: function(a) { return { action: "logout", token: a[0] }; },
+      getUpcomingSessions: function() { return { action: "upcoming" }; }
+    };
+
+    function call(fn, args, onOk, onFail) {
+      api(ACTIONS[fn](args || [])).then(onOk, onFail || function() {});
+    }
+
+    function loadUpcoming() {
+      call("getUpcomingSessions", [], function(res) {
+        if (res) {
+          applyUpcoming(res, true);
+        }
+      });
+    }
+
+    function applyUpcoming(res, fresh) {
+      S.up = res;
+
+      if (fresh && res.serverNowMs) {
+        S.offset = Number(res.serverNowMs) - Date.now();
+      }
+
+      if (fresh && res.success !== false) {
+        writeJson(UPCOMING_CACHE_KEY, res);
+      }
+
+      renderUpcoming();
+      renderLoginPreview();
+    }
+
+    function readJson(key) {
+      try {
+        return JSON.parse(window.localStorage.getItem(key) || "null");
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function writeJson(key, value) {
+      try {
+        window.localStorage.setItem(key, JSON.stringify(value));
+      } catch (e) {}
+    }
+
+    /* ================= Views ================= */
+    function showView(name) {
+      S.view = name;
+
+      document.getElementById("viewLogin").hidden = name !== "login";
+      document.getElementById("viewDashboard").hidden = name !== "dashboard";
+      document.getElementById("viewUpcoming").hidden = name !== "upcoming";
+
+      var loggedIn = !!S.token;
+      document.getElementById("navAccount").textContent = loggedIn ? "حسابي" : "تسجيل الدخول";
+      document.getElementById("navLogout").hidden = !loggedIn;
+      document.getElementById("navUpcoming").classList.toggle("active", name === "upcoming");
+      document.getElementById("navAccount").classList.toggle("active", name === "login" || name === "dashboard");
+
+      if (name === "upcoming") {
+        renderUpcoming();
+      }
+
+      try {
+        var target = name === "upcoming" ? "/upcoming" : "/";
+        if (window.location.pathname !== target) {
+          window.history.replaceState(null, "", target);
+        }
+      } catch (e) {}
+
+      window.scrollTo(0, 0);
+    }
+
+    function goHome() {
+      showView(S.token ? "dashboard" : "login");
+
+      if (S.token && !S.data) {
+        loadMyData();
+      }
+    }
+
+    /* ================= Auth ================= */
+    function onLoginSubmit(event) {
+      event.preventDefault();
+
+      var username = document.getElementById("username").value.trim();
+      var password = document.getElementById("password").value.trim();
+      var btn = document.getElementById("loginBtn");
+
+      hideLoginError();
+
+      if (!username || !password) {
+        showLoginError("أدخل اسم المستخدم وكلمة المرور.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "جاري التحقق...";
+
+      call("login", [username, password], function(res) {
+        btn.disabled = false;
+        btn.textContent = "دخول";
+
+        if (!res || !res.success) {
+          showLoginError((res && res.message) || "تعذر تسجيل الدخول.");
+          return;
+        }
+
+        S.token = res.token;
+        saveToken(res.token);
+        document.getElementById("password").value = "";
+
+        S.data = res.data;
+        S.cat = "";
+        showView("dashboard");
+        renderDashboard();
+      }, function() {
+        btn.disabled = false;
+        btn.textContent = "دخول";
+        showLoginError("تعذر الاتصال. تحقق من الإنترنت ثم حاول مرة أخرى.");
+      });
+    }
+
+    function doLogout() {
+      if (S.token) {
+        call("logout", [S.token]);
+      }
+
+      S.token = "";
+      S.data = null;
+      clearToken();
+      showView("login");
+    }
+
+    function showLoginError(text) {
+      var el = document.getElementById("loginError");
+      el.textContent = text;
+      el.hidden = false;
+    }
+
+    function hideLoginError() {
+      document.getElementById("loginError").hidden = true;
+    }
+
+    function readToken() {
+      try {
+        return window.localStorage.getItem(TOKEN_KEY) || "";
+      } catch (e) {
+        return "";
+      }
+    }
+
+    function saveToken(token) {
+      try {
+        window.localStorage.setItem(TOKEN_KEY, token);
+      } catch (e) {}
+    }
+
+    function clearToken() {
+      try {
+        window.localStorage.removeItem(TOKEN_KEY);
+      } catch (e) {}
+    }
+
+    /* ================= Data ================= */
+    function loadMyData() {
+      setDashLoading(true);
+
+      call("getMyData", [S.token], function(res) {
+        if (res && res.success) {
+          S.data = res.data;
+          renderDashboard();
+          return;
+        }
+
+        if (res && res.expired) {
+          S.token = "";
+          clearToken();
+          showView(S.view === "upcoming" ? "upcoming" : "login");
+          showLoginError(res.message);
+          return;
+        }
+
+        setDashLoading(false);
+        showDashError((res && res.message) || "تعذر تحميل البيانات.");
+      }, function() {
+        setDashLoading(false);
+        showDashError("تعذر الاتصال. تحقق من الإنترنت ثم اضغط تحديث.");
+      });
+    }
+
+    function refreshData() {
+      var btn = document.getElementById("refreshBtn");
+      btn.disabled = true;
+      btn.textContent = "جاري التحديث...";
+
+      call("getMyData", [S.token], function(res) {
+        btn.disabled = false;
+        btn.textContent = "تحديث";
+
+        if (res && res.success) {
+          S.data = res.data;
+          renderDashboard();
+        } else if (res && res.expired) {
+          doLogout();
+          showLoginError(res.message);
+        }
+      }, function() {
+        btn.disabled = false;
+        btn.textContent = "تحديث";
+      });
+    }
+
+    function setDashLoading(on) {
+      document.getElementById("dashLoading").hidden = !on;
+      document.getElementById("dashContent").hidden = on;
+    }
+
+    function showDashError(text) {
+      document.getElementById("dashContent").hidden = false;
+      document.getElementById("summaryPanel").innerHTML =
+        '<div class="empty-state">' + esc(text) + '</div>';
+      document.getElementById("lecturesPanel").hidden = true;
+    }
+
+    /* ================= Dashboard ================= */
+    function renderDashboard() {
+      var d = S.data;
+
+      if (!d) {
+        return;
+      }
+
+      setDashLoading(false);
+
+      document.getElementById("studentName").textContent = d.name || "";
+
+      var uni = document.getElementById("studentUni");
+      uni.textContent = d.university || "";
+      uni.hidden = !d.university;
+
+      var cats = d.categories || [];
+      var exists = cats.some(function(c) { return c.key === S.cat; });
+
+      if (!exists) {
+        var firstAvailable = cats.filter(function(c) { return c.available; })[0];
+        S.cat = firstAvailable ? firstAvailable.key : (cats[0] ? cats[0].key : "");
+      }
+
+      renderTabs();
+      renderCategory();
+    }
+
+    function renderTabs() {
+      var html = (S.data.categories || []).map(function(c) {
+        return '<button type="button" role="tab" class="tab' +
+          (c.key === S.cat ? " active" : "") +
+          (c.available ? "" : " unavailable") +
+          '" onclick="selectCategory(\'' + esc(c.key) + '\')">' +
+          esc(c.label) + '</button>';
+      }).join("");
+
+      document.getElementById("catTabs").innerHTML = html;
+    }
+
+    function selectCategory(key) {
+      S.cat = key;
+      S.filter = "all";
+      S.query = "";
+      document.getElementById("lecSearch").value = "";
+      renderTabs();
+      renderCategory();
+    }
+
+    function currentCategory() {
+      return (S.data.categories || []).filter(function(c) {
+        return c.key === S.cat;
+      })[0] || null;
+    }
+
+    function renderCategory() {
+      var cat = currentCategory();
+      var summary = document.getElementById("summaryPanel");
+      var lecPanel = document.getElementById("lecturesPanel");
+
+      if (!cat || !cat.available) {
+        summary.className = "panel";
+        summary.innerHTML = '<div class="empty-state">لا توجد بيانات لك في ' +
+          esc(cat ? cat.label : "هذا التصنيف") + ' حتى الآن.</div>';
+        lecPanel.hidden = true;
+        return;
+      }
+
+      var st = cat.stats;
+      var pAtt = parsePct(st.attended.pct);
+      var ringClass = pAtt >= 75 ? "" : (pAtt >= 50 ? " mid" : " low");
+      var offset = RING_C * (1 - Math.max(0, Math.min(100, pAtt)) / 100);
+
+      summary.className = "panel summary";
+      summary.innerHTML =
+        '<div class="ring-wrap">' +
+          '<svg viewBox="0 0 120 120" aria-hidden="true">' +
+            '<circle class="ring-track" cx="60" cy="60" r="52"></circle>' +
+            '<circle class="ring-value' + ringClass + '" id="ringValue" cx="60" cy="60" r="52" ' +
+              'stroke-dasharray="' + RING_C.toFixed(2) + '" stroke-dashoffset="' + RING_C.toFixed(2) + '"></circle>' +
+          '</svg>' +
+          '<div class="ring-center">' +
+            '<div class="ring-pct num">' + esc(formatPct(st.attended.pct)) + '</div>' +
+            '<div class="ring-label">نسبة الحضور</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="metrics">' +
+          metricHtml("m-present", "الحضور", st.attended) +
+          metricHtml("m-absent", "الغياب", st.absent) +
+          metricHtml("m-excused", "الغياب المبرر", st.excused) +
+        '</div>';
+
+      // تحريك الحلقة بعد الرسم
+      requestAnimationFrame(function() {
+        var ring = document.getElementById("ringValue");
+        if (ring) {
+          ring.setAttribute("stroke-dashoffset", offset.toFixed(2));
+        }
+      });
+
+      lecPanel.hidden = false;
+      renderFilters();
+      renderLectures();
+    }
+
+    function metricHtml(cls, label, m) {
+      var p = Math.max(0, Math.min(100, parsePct(m.pct)));
+
+      return '<div class="metric ' + cls + '">' +
+        '<div class="metric-head">' +
+          '<div><span class="metric-label">' + esc(label) + '</span>' +
+          '<span class="metric-count num">' + esc(lectureCount(m.count)) + '</span></div>' +
+          '<span class="metric-pct num">' + esc(formatPct(m.pct)) + '</span>' +
+        '</div>' +
+        '<div class="metric-bar"><span style="width:' + p + '%"></span></div>' +
+      '</div>';
+    }
+
+    function renderFilters() {
+      var cat = currentCategory();
+      var counts = { all: 0, present: 0, absent: 0, excused: 0 };
+
+      cat.lectures.forEach(function(l) {
+        counts.all++;
+        if (counts[l.status] !== undefined) {
+          counts[l.status]++;
+        }
+      });
+
+      var defs = [
+        ["all", "الكل"],
+        ["present", "حضور"],
+        ["absent", "غياب"],
+        ["excused", "مبرر"]
+      ];
+
+      document.getElementById("lecFilters").innerHTML = defs.map(function(d) {
+        return '<button type="button" class="filter' + (S.filter === d[0] ? " active" : "") +
+          '" onclick="setFilter(\'' + d[0] + '\')">' + d[1] +
+          ' <span class="num">' + counts[d[0]] + '</span></button>';
+      }).join("");
+    }
+
+    function setFilter(f) {
+      S.filter = f;
+      renderFilters();
+      renderLectures();
+    }
+
+    function renderLectures() {
+      var cat = currentCategory();
+
+      if (!cat || !cat.available) {
+        return;
+      }
+
+      var q = S.query;
+
+      // الأحدث أولاً
+      var list = cat.lectures.slice().reverse().filter(function(l) {
+        if (S.filter !== "all" && l.status !== S.filter) {
+          return false;
+        }
+        return !q || l.title.indexOf(q) !== -1;
+      });
+
+      var table = document.getElementById("lecTable");
+
+      if (list.length === 0) {
+        table.innerHTML = '<li class="empty-state">لا توجد محاضرات مطابقة.</li>';
+        return;
+      }
+
+      var html = '<li class="lec-row head"><span>المحاضرة</span><span>التاريخ</span><span>الحالة</span></li>';
+
+      html += list.map(function(l) {
+        var label = l.status === "other" ? l.raw : STATUS_LABEL[l.status];
+
+        return '<li class="lec-row">' +
+          '<div class="lec-title">' + esc(l.title) + '</div>' +
+          '<div class="lec-date num">' + esc(l.date || "—") + '</div>' +
+          '<span class="chip chip-' + l.status + '">' + esc(label) + '</span>' +
+        '</li>';
+      }).join("");
+
+      table.innerHTML = html;
+    }
+
+    /* ================= Upcoming ================= */
+    function upcomingItems() {
+      var now = nowMs();
+      return (S.up.items || []).filter(function(it) {
+        return Number(it.endMs) > now;
+      });
+    }
+
+    function renderUpcoming() {
+      var items = upcomingItems();
+      var list = document.getElementById("upList");
+      var filters = document.getElementById("upFilters");
+
+      if (S.up.success === false) {
+        filters.innerHTML = "";
+        list.innerHTML = '<div class="panel empty-state">' + esc(S.up.message || "تعذر تحميل الجلسات.") + '</div>';
+        return;
+      }
+
+      var cats = [];
+      items.forEach(function(it) {
+        if (cats.indexOf(it.category) === -1) {
+          cats.push(it.category);
+        }
+      });
+
+      if (S.upCat !== "all" && cats.indexOf(S.upCat) === -1) {
+        S.upCat = "all";
+      }
+
+      filters.innerHTML = cats.length > 1
+        ? ['all'].concat(cats).map(function(c) {
+            return '<button type="button" class="filter' + (S.upCat === c ? " active" : "") +
+              '" data-cat="' + esc(c) + '" onclick="setUpCat(this.getAttribute(\'data-cat\'))">' +
+              esc(c === "all" ? "الكل" : c) + '</button>';
+          }).join("")
+        : "";
+
+      var shown = items.filter(function(it) {
+        return S.upCat === "all" || it.category === S.upCat;
+      });
+
+      if (shown.length === 0) {
+        list.innerHTML = S.up.todayKey
+          ? '<div class="panel empty-state">لا توجد جلسات قادمة حالياً.</div>'
+          : '<div class="loading"><div class="spinner"></div>جاري تحميل الجلسات...</div>';
+        return;
+      }
+
+      var groups = [];
+      var byDay = {};
+
+      shown.forEach(function(it) {
+        if (!byDay[it.dayKey]) {
+          byDay[it.dayKey] = { key: it.dayKey, dateText: it.dateText, items: [] };
+          groups.push(byDay[it.dayKey]);
+        }
+        byDay[it.dayKey].items.push(it);
+      });
+
+      var now = nowMs();
+
+      list.innerHTML = groups.map(function(g) {
+        var tag = g.key === S.up.todayKey ? "اليوم" : (g.key === S.up.tomorrowKey ? "غداً" : "");
+
+        return '<div class="day-group">' +
+          '<div class="day-title">' + esc(g.dateText) +
+            (tag ? '<span class="day-tag">' + tag + '</span>' : '') +
+          '</div>' +
+          '<div class="panel">' +
+            g.items.map(function(it) {
+              var live = Number(it.startMs) <= now && now < Number(it.endMs);
+
+              return '<div class="session">' +
+                '<div class="session-time num">' + esc(it.timeText) + '</div>' +
+                '<div><div class="session-title">' + esc(it.title) + '</div>' +
+                '<div class="session-cat">' + esc(it.category) + '</div></div>' +
+                (live ? '<span class="live">جارية الآن</span>' : '<span></span>') +
+              '</div>';
+            }).join("") +
+          '</div>' +
+        '</div>';
+      }).join("");
+    }
+
+    function setUpCat(c) {
+      S.upCat = c;
+      renderUpcoming();
+    }
+
+    function renderLoginPreview() {
+      var box = document.getElementById("loginPreview");
+      var items = upcomingItems().slice(0, 4);
+
+      if (items.length === 0) {
+        box.innerHTML = '<div class="muted" style="padding:10px 0 14px">' +
+          (S.up.todayKey ? "لا توجد جلسات قادمة حالياً." : "جاري التحميل...") + '</div>';
+        return;
+      }
+
+      var now = nowMs();
+
+      box.innerHTML = items.map(function(it) {
+        var live = Number(it.startMs) <= now && now < Number(it.endMs);
+
+        return '<div class="session">' +
+          '<div class="session-title">' + esc(it.title) +
+            (live ? ' <span class="live">جارية الآن</span>' : '') + '</div>' +
+          '<div class="session-cat num">' + esc(it.dateText) + ' · ' + esc(it.timeText) + '</div>' +
+        '</div>';
+      }).join("");
+    }
+
+    function refreshUpcoming() {
+      var btn = document.getElementById("upRefreshBtn");
+      btn.disabled = true;
+      btn.textContent = "جاري التحديث...";
+
+      call("getUpcomingSessions", [], function(res) {
+        btn.disabled = false;
+        btn.textContent = "تحديث";
+
+        if (res) {
+          applyUpcoming(res, true);
+        }
+      }, function() {
+        btn.disabled = false;
+        btn.textContent = "تحديث";
+      });
+    }
+
+    /* ================= Helpers ================= */
+    function parsePct(value) {
+      var s = String(value || "").replace(/[٠-٩]/g, function(ch) {
+        return String(ch.charCodeAt(0) - 0x0660);
+      });
+      var hasPercent = s.indexOf("%") !== -1;
+      var n = parseFloat(s.replace(/[^\d.\-]/g, ""));
+
+      if (isNaN(n)) {
+        return 0;
+      }
+
+      // قيمة كسرية مثل 0.39 بدون علامة %
+      if (!hasPercent && n > 0 && n <= 1) {
+        n = n * 100;
+      }
+
+      return Math.round(n);
+    }
+
+    function formatPct(value) {
+      return parsePct(value) + "%";
+    }
+
+    function lectureCount(value) {
+      var n = parseInt(String(value || "0").replace(/[^\d]/g, ""), 10) || 0;
+
+      if (n === 0) return "لا يوجد";
+      if (n === 1) return "محاضرة واحدة";
+      if (n === 2) return "محاضرتان";
+      if (n <= 10) return n + " محاضرات";
+      return n + " محاضرة";
+    }
+
+    function esc(text) {
+      return String(text === null || text === undefined ? "" : text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
