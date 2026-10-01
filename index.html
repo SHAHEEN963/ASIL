@@ -1118,10 +1118,10 @@
         saveToken(res.token);
         document.getElementById("password").value = "";
 
-        S.data = res.data;
+        S.data = null;
         S.cat = "all";
         showView("dashboard");
-        renderDashboard();
+        loadMyData();
       }, function() {
         btn.disabled = false;
         btn.textContent = "دخول";
