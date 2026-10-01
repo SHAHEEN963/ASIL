@@ -559,6 +559,13 @@
       line-height: 1.6;
     }
 
+    .lec-catline {
+      margin-top: 2px;
+      color: var(--ink-soft);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
     .lec-date {
       color: var(--ink-soft);
       font-size: 14px;
@@ -830,7 +837,7 @@
 
             <div class="field">
               <label for="password">كلمة المرور</label>
-              <input id="password" name="password" type="password" autocomplete="current-password" inputmode="numeric" required>
+              <input id="password" name="password" type="password" autocomplete="current-password" inputmode="text" autocapitalize="none" spellcheck="false" required>
             </div>
 
             <button type="submit" class="btn-primary" id="loginBtn">دخول</button>
@@ -873,12 +880,12 @@
 
         <div class="panel" id="lecturesPanel" hidden>
           <div class="lectures-head">
-            <h2>سجل المحاضرات</h2>
+            <h2>سجل الأنشطة</h2>
             <div class="filters" id="lecFilters"></div>
           </div>
 
           <div class="search">
-            <input type="search" id="lecSearch" placeholder="ابحث باسم المحاضرة">
+            <input type="search" id="lecSearch" placeholder="ابحث باسم النشاط">
           </div>
 
           <ul class="lec-table" id="lecTable"></ul>
@@ -1112,7 +1119,7 @@
         document.getElementById("password").value = "";
 
         S.data = res.data;
-        S.cat = "";
+        S.cat = "all";
         showView("dashboard");
         renderDashboard();
       }, function() {
@@ -1241,11 +1248,15 @@
       uni.hidden = !d.university;
 
       var cats = d.categories || [];
-      var exists = cats.some(function(c) { return c.key === S.cat; });
+      var hasAvailable = cats.some(function(c) { return c.available; });
+      var exists = S.cat === "all"
+        ? hasAvailable
+        : cats.some(function(c) { return c.key === S.cat; });
 
+      // الصفحة الرئيسية تبدأ دائماً بـ "كل الأنشطة" متى وُجدت بيانات.
       if (!exists) {
         var firstAvailable = cats.filter(function(c) { return c.available; })[0];
-        S.cat = firstAvailable ? firstAvailable.key : (cats[0] ? cats[0].key : "");
+        S.cat = hasAvailable ? "all" : (firstAvailable ? firstAvailable.key : (cats[0] ? cats[0].key : ""));
       }
 
       renderTabs();
@@ -1253,7 +1264,17 @@
     }
 
     function renderTabs() {
-      var html = (S.data.categories || []).map(function(c) {
+      var cats = S.data.categories || [];
+      var hasAvailable = cats.some(function(c) { return c.available; });
+      var html = "";
+
+      if (hasAvailable) {
+        html += '<button type="button" role="tab" class="tab' +
+          (S.cat === "all" ? " active" : "") +
+          '" onclick="selectCategory(\'all\')">كل الأنشطة</button>';
+      }
+
+      html += cats.map(function(c) {
         return '<button type="button" role="tab" class="tab' +
           (c.key === S.cat ? " active" : "") +
           (c.available ? "" : " unavailable") +
@@ -1274,7 +1295,52 @@
     }
 
     function currentCategory() {
-      return (S.data.categories || []).filter(function(c) {
+      var cats = S.data.categories || [];
+
+      if (S.cat === "all") {
+        var lectures = [];
+        var p = 0, a = 0, e = 0;
+
+        cats.forEach(function(c) {
+          if (!c.available) {
+            return;
+          }
+
+          (c.lectures || []).forEach(function(l) {
+            lectures.push({
+              title: l.title,
+              date: l.date,
+              status: l.status,
+              raw: l.raw,
+              categoryLabel: c.label
+            });
+
+            if (l.status === "present") p++;
+            else if (l.status === "absent") a++;
+            else if (l.status === "excused") e++;
+          });
+        });
+
+        var total = p + a + e;
+
+        function pct(n) {
+          return total ? Math.round(n * 100 / total) + "%" : "0%";
+        }
+
+        return {
+          key: "all",
+          label: "كل الأنشطة",
+          available: lectures.length > 0,
+          stats: {
+            attended: { count: String(p), pct: pct(p) },
+            absent: { count: String(a), pct: pct(a) },
+            excused: { count: String(e), pct: pct(e) }
+          },
+          lectures: lectures
+        };
+      }
+
+      return cats.filter(function(c) {
         return c.key === S.cat;
       })[0] || null;
     }
@@ -1397,13 +1463,15 @@
         return;
       }
 
-      var html = '<li class="lec-row head"><span>المحاضرة</span><span>التاريخ</span><span>الحالة</span></li>';
+      var html = '<li class="lec-row head"><span>النشاط</span><span>التاريخ</span><span>الحالة</span></li>';
 
       html += list.map(function(l) {
         var label = l.status === "other" ? l.raw : STATUS_LABEL[l.status];
 
         return '<li class="lec-row">' +
-          '<div class="lec-title">' + esc(l.title) + '</div>' +
+          '<div class="lec-title">' + esc(l.title) +
+            (l.categoryLabel ? '<div class="lec-catline">' + esc(l.categoryLabel) + '</div>' : '') +
+          '</div>' +
           '<div class="lec-date num">' + esc(l.date || "—") + '</div>' +
           '<span class="chip chip-' + l.status + '">' + esc(label) + '</span>' +
         '</li>';
